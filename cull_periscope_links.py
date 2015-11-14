@@ -6,6 +6,7 @@ import argparse
 import codecs
 import glob
 import re
+import io
 
 
 parser = argparse.ArgumentParser(description='extract periscope links')
@@ -35,56 +36,61 @@ for filename_index in range(file_count):
 
     with open(filename, "r") as f:
 
-        # tweets are expected on each line
-        for rawline in f:
+        with io.open(args.output, "w", encoding="utf-8") as outfile:
 
-            # check for empty lines
-            rawline = rawline.strip()
-            if not rawline:
-                continue
+            # tweets are expected on each line
+            for rawline in f:
 
-            line = codecs.decode(rawline, args.encoding)
+                # check for empty lines
+                rawline = rawline.strip()
+                if not rawline:
+                    continue
 
-            # convert it to json
-            try:
-                tweet = None
-                tweet = json.loads(line)
+                line = codecs.decode(rawline, args.encoding)
 
-            except Exception, e:
-                print "failed to parse json: ", e
-                print line
+                # convert it to json
+                try:
+                    tweet = None
+                    tweet = json.loads(line)
 
-            # continue if the tweet failed
-            if tweet is None:
-                continue
+                except Exception, e:
+                    print "failed to parse json: ", e
+                    print line
 
-            # see if this is a gnip info message, and skip if it is
-            if 'info' in tweet and 'message' in tweet['info']:
-                # print "info tweet", repr(tweet)
-                continue
+                # continue if the tweet failed
+                if tweet is None:
+                    continue
 
-            # make sure it's a tweet
-            if not 'text' in tweet or not 'created_at' in tweet or not 'user' in tweet:
-                print "line is not a recognized tweet..."
-                print "> ", line
-                print "----------"
-                continue
+                # see if this is a gnip info message, and skip if it is
+                if 'info' in tweet and 'message' in tweet['info']:
+                    # print "info tweet", repr(tweet)
+                    continue
 
-            # check to see if it's been processed, if not, add it to set
-            tweet_id = tweet['id']
-            tweet_text = tweet['text']
+                # make sure it's a tweet
+                if not 'text' in tweet or not 'created_at' in tweet or not 'user' in tweet:
+                        print "line is not a recognized tweet..."
+                        print "> ", line
+                        print "----------"
+                        continue
 
-            urls = tweet['entities']['urls']
+                # check to see if it's been processed, if not, add it to set
+                tweet_id = tweet['id']
+                tweet_text = tweet['text']
 
-            for url in urls:
-                # print url["expanded_url"]
-                expanded_url = url["expanded_url"]
-                #print periscope_regex.search(expanded_url), expanded_url
-                if periscope_regex.search(expanded_url) is not None:
-                    print "%d,%s,\"%s\"" % (
-                        tweet_id,
-                        expanded_url.replace("\"", "\"\""),
-                        tweet_text)
+                urls = tweet['entities']['urls']
+
+                for url in urls:
+                    # print url["expanded_url"]
+                    expanded_url = url["expanded_url"]
+                    #print periscope_regex.search(expanded_url), expanded_url
+                    if periscope_regex.search(expanded_url) is not None:
+
+                        line = "%d,%s,\"%s\"\n" % (
+                            tweet_id,
+                            expanded_url.replace("\"", "\"\""),
+                            tweet_text)
+                        
+                        outfile.write(line)
 
 
 
