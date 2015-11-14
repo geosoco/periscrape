@@ -172,6 +172,9 @@ if __name__ == "__main__":
         stream_path = os.path.join(args.output_path, scope_id)
         if not os.path.exists(stream_path):
             os.makedirs(stream_path)
+        else:
+            print "already found stream id (\"%s\"), skipping" % (scope_id)
+            continue
 
         # save broadcast data
         broadcast_filepath = os.path.join(stream_path, "pub_broadcast.json")
