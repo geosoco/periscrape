@@ -11,14 +11,17 @@ import re
 parser = argparse.ArgumentParser(description='extract periscope links')
 parser.add_argument('inputs', help='input json files')
 parser.add_argument('output', help='output filename')
+parser.add_argument(
+    '-e', '--encoding', default="utf-8",
+    help="json file encoding (default is utf-8)")
 
 args = parser.parse_args()
 
-file_list = sorted(glob.glob(args.filename))
+file_list = sorted(glob.glob(args.inputs))
 file_count = len(file_list)
 
 # regex
-periscope_regex = re.compile("periscope\.tv", re.I)
+periscope_regex = re.compile(r"periscope\.tv", re.I)
 
 #
 # step through each file
@@ -74,10 +77,14 @@ for filename_index in range(file_count):
             urls = tweet['entities']['urls']
 
             for url in urls:
-                if periscope_regex.match(url["expanded_url"]) is not None:
+                # print url["expanded_url"]
+                expanded_url = url["expanded_url"]
+                #print periscope_regex.search(expanded_url), expanded_url
+                if periscope_regex.search(expanded_url) is not None:
                     print "%d,%s,\"%s\"" % (
                         tweet_id,
-                        url["expanded_url"],
+                        expanded_url.replace("\"", "\"\""),
                         tweet_text)
+
 
 
