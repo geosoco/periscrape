@@ -28,15 +28,19 @@ periscope_regex = re.compile(r"periscope\.tv", re.I)
 # step through each file
 #
 
-for filename_index in range(file_count):
+with io.open(args.output, "w", encoding="utf-8") as outfile:
 
-    filename = file_list[filename_index]
-    print "opening \"%s\" (%d of %d)" % (
-        filename,  filename_index+1, file_count)
+    outfile.write("id,url,text\n")
 
-    with open(filename, "r") as f:
+    for filename_index in range(file_count):
 
-        with io.open(args.output, "w", encoding="utf-8") as outfile:
+        filename = file_list[filename_index]
+        print "opening \"%s\" (%d of %d)" % (
+            filename,  filename_index+1, file_count)
+
+        with open(filename, "r") as f:
+
+        
 
             # tweets are expected on each line
             for rawline in f:
