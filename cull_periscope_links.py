@@ -30,7 +30,7 @@ periscope_regex = re.compile(r"periscope\.tv", re.I)
 
 with io.open(args.output, "w", encoding="utf-8") as outfile:
 
-    outfile.write("id,url,text\n")
+    outfile.write(u"id,url,text\n")
 
     for filename_index in range(file_count):
 
@@ -89,10 +89,10 @@ with io.open(args.output, "w", encoding="utf-8") as outfile:
                     #print periscope_regex.search(expanded_url), expanded_url
                     if periscope_regex.search(expanded_url) is not None:
 
-                        line = "%d,%s,\"%s\"\n" % (
+                        line = u"%d,%s,\"%s\"\n" % (
                             tweet_id,
-                            expanded_url.replace("\"", "\"\""),
-                            tweet_text)
+                            unicode(expanded_url.replace("\"", "\"\"")),
+                            unicode(tweet_text))
                         
                         outfile.write(line)
 
