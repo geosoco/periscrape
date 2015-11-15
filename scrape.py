@@ -12,6 +12,9 @@ from multiprocessing import Pool, freeze_support
 from functools import partial
 from pubnub import Pubnub
 
+# disable warnings
+requests.packages.urllib3.disable_warnings()
+
 
 PERISCOPE_GETBROADCAST = "https://api.periscope.tv/api/v2/getBroadcastPublic?{}={}"
 PERISCOPE_GETACCESS = "https://api.periscope.tv/api/v2/getAccessPublic?{}={}"
@@ -36,7 +39,7 @@ def dissect_url(url):
 
     except:
         print "\nError: Invalid URL: {}".format(url)
-        sys.exit(1)
+        return None
 
     return parts
 
@@ -72,7 +75,7 @@ def grab_all_pubnub_messages(pubnub, channel):
     start_time = None
 
     while True:
-        print "grabbing at ", start_time
+        #print "grabbing at ", start_time
         result = pubnub.history(
             channel,
             count=100,
@@ -84,7 +87,7 @@ def grab_all_pubnub_messages(pubnub, channel):
             end = result[2]
             start_time = end
             results += msgs
-            print "read %d messages" %(len(msgs))
+            #print "read %d messages" %(len(msgs))
         else:
             break
 
@@ -124,6 +127,7 @@ if __name__ == "__main__":
     parser.add_argument('output_path', help='output path')
     parser.add_argument(
         '--procs',
+        type=int,
         help='number of download processes',
         default=4)
     args = parser.parse_args()
@@ -137,8 +141,10 @@ if __name__ == "__main__":
 
     for url in url_list:
         url_parts = dissect_url(url)
+        if url_parts is None:
+            continue
 
-        print url_parts
+        #print url_parts
 
         if url_parts['token'] == "":
             req_url = PERISCOPE_GETBROADCAST.format("broadcast_id", url_parts['broadcast_id'])
@@ -154,7 +160,7 @@ if __name__ == "__main__":
             response = requests.get(req_url, headers=req_headers)
             broadcast_public = json.loads(response.text)
 
-            print json.dumps(broadcast_public, indent=4)
+            #print json.dumps(broadcast_public, indent=4)
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
@@ -167,6 +173,9 @@ if __name__ == "__main__":
         # grab metadata
         scope_id = broadcast_public['broadcast']['id']
         scope_user_id = broadcast_public['broadcast']['user_id']
+
+        print "scope_id: ", scope_id
+        print "scope_user:", scope_user_id
 
         # create directory
         stream_path = os.path.join(args.output_path, scope_id)
@@ -261,7 +270,7 @@ if __name__ == "__main__":
 
 
             # start our downloads
-            """
+            print "Downloading data"
             mpool = Pool(processes=args.procs)
             dl_partial = partial(download_chunk, req_headers=req_headers)
             mpool.map(dl_partial, download_list )
@@ -269,7 +278,6 @@ if __name__ == "__main__":
             mpool.close()
             mpool.join()
             mpool = None
-            """
 
             # grab pubnub data
             pn_subkey = access_public['subscriber']
